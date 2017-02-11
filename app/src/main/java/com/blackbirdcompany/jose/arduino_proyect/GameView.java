@@ -30,6 +30,8 @@ public class GameView extends SurfaceView {
     private SurfaceHolder holder;
     private GameLoopThread gameLoopThread;
     private int RADIO, EJEX, EJEY;
+    boolean db;
+    ArrayList posiciones;
     private static final int RASTRO = 20; //numero de lineas que habrá de rastro
 
     public GameView(final Context context) {
@@ -61,10 +63,12 @@ public class GameView extends SurfaceView {
                                        int width, int height) {
             }
         });
-
-        ang = 30;
+        posiciones=new ArrayList();
+        ang = 0;
         sumaAng = -1;
         bolAux=true;
+        objetoDtectado(60);
+        objetoDtectado(120);
 
         lineas = new float[RASTRO][2];
         for(int i = 0; i<RASTRO; i++) {
@@ -93,6 +97,7 @@ public class GameView extends SurfaceView {
         Paint pincel=new Paint();
         basePrincipal(canvas,pincel);
 
+        pincel.setColor(Color.GREEN);
         //Dibuja las lineas del radar
         pincel.setStrokeWidth(8);
 
@@ -105,7 +110,7 @@ public class GameView extends SurfaceView {
             ang--;
             sumaAng=1;
         }
-        if(ang>=150 || ang<=30)
+        if(ang>=180 || ang<=0)
             bolAux=!bolAux;
 
     }
@@ -148,7 +153,7 @@ public class GameView extends SurfaceView {
 
         //Dibuja los numeros alrrededor de la circunferencia
         Path trazado = new Path();
-        trazado.addCircle(EJEX, EJEY, 70+RADIO, Path.Direction.CW);
+        trazado.addCircle(EJEX, EJEY, 70 + RADIO, Path.Direction.CW);
         pincel.setStrokeWidth(5);
         pincel.setStyle(Paint.Style.FILL);
         pincel.setTextSize(40);
@@ -159,6 +164,17 @@ public class GameView extends SurfaceView {
         canvas.drawTextOnPath("90º", trazado, (270-1)*aux,0, pincel);
         canvas.drawTextOnPath("120º", trazado, (240-2)*aux,0, pincel);
         canvas.drawTextOnPath("150º", trazado, (210-2)*aux,0, pincel);
+        if(posiciones.size()>0) {
+            for (int i = 0; i < posiciones.size(); i++) {
+                if (ang == Float.parseFloat(posiciones.get(i).toString())) {
+                    pincel.setColor(Color.RED);
+                    pincel.setStrokeWidth(10);
+                    dibujaObjeto(canvas, pincel, Float.parseFloat(posiciones.get(i).toString()), (float) ((getWidth() / 2) - (Math.cos(Math.toRadians(Float.parseFloat(posiciones.get(i).toString()))) * (RADIO))),
+                            (float) ((getHeight()) - (Math.sin(Math.toRadians(Float.parseFloat(posiciones.get(i).toString()))) * (RADIO))));
+                    posiciones.remove(i);
+                }
+            }
+        }
     }
 
     private void dibujaLinea(Canvas canvas, Paint pincel, int angulo){
@@ -189,7 +205,18 @@ public class GameView extends SurfaceView {
                 pincel.setARGB(degra[i], 255, 117, 20);
                 canvas.drawLine(EJEX, EJEY, lineas[i][0], lineas[i][1], pincel);
             }
-
         }
+    }
+    private void dibujaObjeto(Canvas canvas,Paint pincel,float angulo,float x,float y){
+        canvas.drawLine(x+10,y-100,x+10,y+100,pincel);
+        canvas.drawLine(x+20,y-120,x+20,y+120,pincel);
+        canvas.drawLine(x+30,y-140,x+30,y+140,pincel);
+        canvas.drawLine(x+40,y-160,x+40,y+160,pincel);
+        canvas.drawLine(x+50,y-140,x+50,y+140,pincel);
+        canvas.drawLine(x+60,y-120,x+60,y+120,pincel);
+        canvas.drawLine(x+70,y-100,x+70,y+100,pincel);
+    }
+    private void objetoDtectado(float angulo){
+        posiciones.add(angulo);
     }
 }
