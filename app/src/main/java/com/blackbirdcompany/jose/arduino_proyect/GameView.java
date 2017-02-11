@@ -18,6 +18,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,7 +29,8 @@ public class GameView extends SurfaceView {
 
     private SurfaceHolder holder;
     private GameLoopThread gameLoopThread;
-    private int RADIO;
+    private int RADIO, EJEX, EJEY;
+    private static final int RASTRO = 20; //numero de lineas que habrá de rastro
 
     public GameView(final Context context) {
         super(context);
@@ -59,44 +61,42 @@ public class GameView extends SurfaceView {
                                        int width, int height) {
             }
         });
-        //bmp = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+
         ang = 30;
         sumaAng = -1;
         bolAux=true;
+
+        lineas = new float[RASTRO][2];
+        for(int i = 0; i<RASTRO; i++) {
+            for (int n = 0; n<2; n++){
+                lineas[i][n] = 0;
+            }
+        }
+        degra = new int[RASTRO];
+        int aux = 250;
+        int resta = aux/RASTRO;
+        for(int i = 0; i<degra.length; i++) {
+            degra[i] = aux;
+            aux -= resta;
+        }
+
     }
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void onDraw(Canvas canvas) {
 
         //Define el radio de la circunferencia exterior
         RADIO = getWidth()/2 - 30;
+        EJEX = getWidth()/2;
+        EJEY = getHeight();
 
         //Vuelve a dibujar la base del canvas
         Paint pincel=new Paint();
         basePrincipal(canvas,pincel);
 
         //Dibuja las lineas del radar
-        pincel.setStrokeWidth(3);
+        pincel.setStrokeWidth(8);
 
-        pincel.setARGB(255, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang))*(50 + RADIO))),pincel);
-        pincel.setARGB(225, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*1)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*1)))*(50 + RADIO))),pincel);
-        pincel.setARGB(200, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*2)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*2)))*(50 + RADIO))),pincel);
-        pincel.setARGB(175, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*3)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*3)))*(50 + RADIO))),pincel);
-        pincel.setARGB(150, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*4)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*4)))*(50 + RADIO))),pincel);
-        pincel.setARGB(125, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*5)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*5)))*(50 + RADIO))),pincel);
-        pincel.setARGB(100, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*6)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*6)))*(50 + RADIO))),pincel);
-        pincel.setARGB(75, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*7)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*7)))*(50 + RADIO))),pincel);
-        pincel.setARGB(50, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*8)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*8)))*(50 + RADIO))),pincel);
-        pincel.setARGB(25, 255, 117, 20);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(ang+(sumaAng*9)))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(ang+(sumaAng*9)))*(50 + RADIO))),pincel);
+        dibujaLinea(canvas, pincel, ang);
 
         if(bolAux) {
             ang++;
@@ -124,31 +124,31 @@ public class GameView extends SurfaceView {
         pincel.setColor(Color.BLACK);
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), pincel);
 
-        //ahora dibujo el circulo con las coordenadas
+        //Prepara el pincel
         pincel.setStrokeWidth(5);
         pincel.setStyle(Paint.Style.STROKE);
         pincel.setColor(Color.GREEN);
 
         //Dibuja las 5 lineas de los grados (30, 60, 90, 120, 150)
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(30))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(30))*(50 + RADIO))),pincel);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(60))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(60))*(50 + RADIO))),pincel);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(90))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(90))*(50 + RADIO))),pincel);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(120))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(120))*(50 + RADIO))),pincel);
-        canvas.drawLine(getWidth()/2, getHeight(), (float)((getWidth()/2)-(Math.cos(Math.toRadians(150))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(150))*(50 + RADIO))),pincel);
+        canvas.drawLine(EJEX, EJEY, (float)((getWidth()/2)-(Math.cos(Math.toRadians(30))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(30))*(50 + RADIO))),pincel);
+        canvas.drawLine(EJEX, EJEY, (float)((getWidth()/2)-(Math.cos(Math.toRadians(60))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(60))*(50 + RADIO))),pincel);
+        canvas.drawLine(EJEX, EJEY, (float)((getWidth()/2)-(Math.cos(Math.toRadians(90))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(90))*(50 + RADIO))),pincel);
+        canvas.drawLine(EJEX, EJEY, (float)((getWidth()/2)-(Math.cos(Math.toRadians(120))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(120))*(50 + RADIO))),pincel);
+        canvas.drawLine(EJEX, EJEY, (float)((getWidth()/2)-(Math.cos(Math.toRadians(150))*(50 + RADIO))), (float)((getHeight())-(Math.sin(Math.toRadians(150))*(50 + RADIO))),pincel);
 
         //Dibuja linea inferior
         canvas.drawLine(0,getHeight()-3,getWidth(),getHeight()-3,pincel);
 
         //Dibuja los circulos
         pincel.setStrokeWidth(5);
-        canvas.drawCircle(getWidth()/2,getHeight(),RADIO-600,pincel);
-        canvas.drawCircle(getWidth()/2,getHeight(),RADIO-400,pincel);
-        canvas.drawCircle(getWidth()/2,getHeight(),RADIO-200,pincel);
-        canvas.drawCircle(getWidth()/2,getHeight(),RADIO,pincel);
+        canvas.drawCircle(EJEX,EJEY,RADIO-600,pincel);
+        canvas.drawCircle(EJEX,EJEY,RADIO-400,pincel);
+        canvas.drawCircle(EJEX,EJEY,RADIO-200,pincel);
+        canvas.drawCircle(EJEX,EJEY,RADIO,pincel);
 
         //Dibuja los numeros alrrededor de la circunferencia
         Path trazado = new Path();
-        trazado.addCircle(getWidth()/2,getHeight(),70+RADIO, Path.Direction.CW);
+        trazado.addCircle(EJEX, EJEY, 70+RADIO, Path.Direction.CW);
         pincel.setStrokeWidth(5);
         pincel.setStyle(Paint.Style.FILL);
         pincel.setTextSize(40);
@@ -161,5 +161,35 @@ public class GameView extends SurfaceView {
         canvas.drawTextOnPath("150º", trazado, (210-2)*aux,0, pincel);
     }
 
+    private void dibujaLinea(Canvas canvas, Paint pincel, int angulo){
+        float x = (float)((getWidth()/2)-(Math.cos(Math.toRadians(angulo))*(50 + RADIO)));
+        float y = (float)((getHeight())-(Math.sin(Math.toRadians(angulo))*(50 + RADIO)));
+        pincel.setARGB(255, 255, 117, 20);
+        canvas.drawLine(EJEX, EJEY, x, y, pincel);
+        dibujaRastro(canvas, pincel);
+        guardaLinea(x, y);
+    }
 
+    float lineas[][];
+    int degra[];
+    private void guardaLinea(float x, float y){
+        //Mueve los objetos del array una posicion hacia el final y guarda la nueva linea en la posicion 0
+        for(int i = RASTRO-1; i>0; i--) {
+                lineas[i][0] = lineas[i-1][0];
+                lineas[i][1] = lineas[i-1][1];
+        }
+        lineas[0][0]=x;
+        lineas[0][1]=y;
+    }
+
+    private void dibujaRastro(Canvas canvas, Paint pincel){
+        //Dibuja todas las lineas guardadas en el array de lineas
+        for(int i = 0; i<RASTRO; i++) {
+            if (lineas[i][0] != 0) {
+                pincel.setARGB(degra[i], 255, 117, 20);
+                canvas.drawLine(EJEX, EJEY, lineas[i][0], lineas[i][1], pincel);
+            }
+
+        }
+    }
 }
