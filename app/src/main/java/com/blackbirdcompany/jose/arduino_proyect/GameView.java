@@ -25,29 +25,15 @@ import java.util.List;
  */
 
 public class GameView extends SurfaceView {
-    private Bitmap bmp;
+
     private SurfaceHolder holder;
     private GameLoopThread gameLoopThread;
     private int RADIO;
-    float cx,cy;
-    private String TAG="AVISO";
-    boolean ok=false;
-    int incr=530,incr2=0;
-    boolean posA,posB,posC,posD;
 
     public GameView(final Context context) {
         super(context);
         gameLoopThread = new GameLoopThread(this);
         holder = getHolder();
-        this.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(cx==v.getX() && cy==v.getY()){
-                    Log.e(TAG,"has tocado la bola");
-                }
-            }
-        });
-
         holder.addCallback(new SurfaceHolder.Callback() {
 
             @Override
@@ -66,13 +52,6 @@ public class GameView extends SurfaceView {
             public void surfaceCreated(SurfaceHolder holder) {
                 gameLoopThread.setRunning(true);
                 gameLoopThread.start();
-                cx=getWidth();
-                cy=getHeight()/2;
-                posA=true;
-                posB=false;
-                posC=false;
-                posD=false;
-
             }
 
             @Override
